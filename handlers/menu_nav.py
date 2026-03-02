@@ -15,7 +15,12 @@ router = Router()
 @router.callback_query(F.data == "menu:back")
 async def cb_back(callback: CallbackQuery, **kwargs):
     set_user_state(callback.from_user.id, "menu")
-    await callback.message.edit_text(
+    # Удаляем старое сообщение (может быть фото) и отправляем новое текстовое
+    try:
+        await callback.message.delete()
+    except Exception:
+        pass
+    await callback.message.answer(
         "📋 **Главное меню:**",
         parse_mode="Markdown",
         reply_markup=get_menu_kb(callback.from_user.id),
@@ -26,7 +31,11 @@ async def cb_back(callback: CallbackQuery, **kwargs):
 @router.callback_query(F.data == "menu:help")
 async def cb_help(callback: CallbackQuery, **kwargs):
     from handlers.start import HELP
-    await callback.message.edit_text(
+    try:
+        await callback.message.delete()
+    except Exception:
+        pass
+    await callback.message.answer(
         HELP,
         parse_mode="Markdown",
         reply_markup=get_menu_kb(callback.from_user.id),
@@ -38,7 +47,11 @@ async def cb_help(callback: CallbackQuery, **kwargs):
 async def cb_clear(callback: CallbackQuery, **kwargs):
     count = clear_history(callback.from_user.id)
     set_user_state(callback.from_user.id, "menu")
-    await callback.message.edit_text(
+    try:
+        await callback.message.delete()
+    except Exception:
+        pass
+    await callback.message.answer(
         f"🔄 История очищена ({count} сообщений).\n\n📋 **Главное меню:**",
         parse_mode="Markdown",
         reply_markup=get_menu_kb(callback.from_user.id),
