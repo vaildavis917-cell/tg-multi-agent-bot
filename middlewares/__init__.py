@@ -1,0 +1,2 @@
+from middlewares.access import AccessMiddleware
+from middlewares.logging_mw import LoggingMiddleware
