@@ -26,6 +26,7 @@ def agent_selected_kb(agent_id: int, is_fav: bool = False) -> InlineKeyboardMark
         [InlineKeyboardButton(text="⚡ Быстрые запросы", callback_data=f"agent:templates:{agent_id}")],
         [InlineKeyboardButton(text="📄 Экспорт диалога", callback_data=f"export:agent:{agent_id}")],
         [InlineKeyboardButton(text=fav_text, callback_data=fav_data)],
-        [InlineKeyboardButton(text="📋 Об агенте", callback_data=f"agent:info:{agent_id}")],
+        [InlineKeyboardButton(text="🔍 Веб-поиск", callback_data=f"search:agent:{agent_id}")],
+        [InlineKeyboardButton(text="📝 Об агенте", callback_data=f"agent:info:{agent_id}")],
         [InlineKeyboardButton(text="◀️ Назад в меню", callback_data="menu:back")],
     ])

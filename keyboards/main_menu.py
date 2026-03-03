@@ -11,6 +11,19 @@ def main_menu_kb() -> InlineKeyboardMarkup:
         [InlineKeyboardButton(text="🤖 Выбрать агента", callback_data="menu:agents")],
         [InlineKeyboardButton(text="⭐ Избранные агенты", callback_data="menu:favorites")],
         [InlineKeyboardButton(text="💬 Свободный чат с LLM", callback_data="menu:free_chat")],
+        [
+            InlineKeyboardButton(text="🤝 Мульти-агент", callback_data="menu:multi_agent"),
+            InlineKeyboardButton(text="⚖️ Сравнение", callback_data="menu:compare"),
+        ],
+        [
+            InlineKeyboardButton(text="📊 Рынки", callback_data="menu:market"),
+            InlineKeyboardButton(text="📈 Графики", callback_data="menu:charts"),
+        ],
+        [
+            InlineKeyboardButton(text="📚 База знаний", callback_data="menu:knowledge"),
+            InlineKeyboardButton(text="🧠 Память", callback_data="menu:memory"),
+        ],
+        [InlineKeyboardButton(text="📋 Отчёты по расписанию", callback_data="menu:scheduled")],
         [InlineKeyboardButton(text="🔄 Сбросить историю", callback_data="menu:clear_history")],
         [
             InlineKeyboardButton(text="🌐 Язык", callback_data="menu:settings"),
@@ -24,6 +37,19 @@ def main_menu_kb_admin() -> InlineKeyboardMarkup:
         [InlineKeyboardButton(text="🤖 Выбрать агента", callback_data="menu:agents")],
         [InlineKeyboardButton(text="⭐ Избранные агенты", callback_data="menu:favorites")],
         [InlineKeyboardButton(text="💬 Свободный чат с LLM", callback_data="menu:free_chat")],
+        [
+            InlineKeyboardButton(text="🤝 Мульти-агент", callback_data="menu:multi_agent"),
+            InlineKeyboardButton(text="⚖️ Сравнение", callback_data="menu:compare"),
+        ],
+        [
+            InlineKeyboardButton(text="📊 Рынки", callback_data="menu:market"),
+            InlineKeyboardButton(text="📈 Графики", callback_data="menu:charts"),
+        ],
+        [
+            InlineKeyboardButton(text="📚 База знаний", callback_data="menu:knowledge"),
+            InlineKeyboardButton(text="🧠 Память", callback_data="menu:memory"),
+        ],
+        [InlineKeyboardButton(text="📋 Отчёты по расписанию", callback_data="menu:scheduled")],
         [InlineKeyboardButton(text="🔄 Сбросить историю", callback_data="menu:clear_history")],
         [
             InlineKeyboardButton(text="🌐 Язык", callback_data="menu:settings"),

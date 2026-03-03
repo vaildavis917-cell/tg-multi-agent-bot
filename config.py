@@ -24,3 +24,6 @@ DATABASE_PATH: str = os.getenv("DATABASE_PATH", "bot_data.db")
 # ── Лимиты ───────────────────────────────────────────────
 MAX_HISTORY_LENGTH: int = int(os.getenv("MAX_HISTORY_LENGTH", "20"))
 MAX_MESSAGE_LENGTH: int = 4096
+
+# ── Alpha Vantage ────────────────────────────────────────
+ALPHA_VANTAGE_KEY: str = os.getenv("ALPHA_VANTAGE_KEY", "")

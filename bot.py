@@ -29,7 +29,16 @@ from handlers.admin_panel import router as admin_panel_router
 from handlers.admin_whitelist import router as admin_wl_router
 from handlers.admin_agents import router as admin_ag_router
 from handlers.admin_stats import router as admin_stats_router
-from handlers.chat_router import router as chat_router  # ДОЛЖЕН БЫТЬ ПОСЛЕДНИМ
+# ── Новые хендлеры ───────────────────────────────────────
+from handlers.web_search import router as web_search_router
+from handlers.multi_agent import router as multi_agent_router
+from handlers.scheduled import router as scheduled_router
+from handlers.memory import router as memory_router
+from handlers.charts import router as charts_router
+from handlers.knowledge import router as knowledge_router
+from handlers.market import router as market_router
+# ── Catch-all — ПОСЛЕДНИЙ ────────────────────────────────
+from handlers.chat_router import router as chat_router
 
 # ── Middleware ───────────────────────────────────────────
 from middlewares import AccessMiddleware, LoggingMiddleware
@@ -56,6 +65,15 @@ async def main():
     init_db()
     logger.info("Database initialized")
 
+    # Инициализация новых таблиц
+    from db.memory import init_memory_table
+    from db.scheduled import init_scheduled_table
+    from db.knowledge import init_knowledge_table
+    init_memory_table()
+    init_scheduled_table()
+    init_knowledge_table()
+    logger.info("New tables initialized (memory, scheduled, knowledge)")
+
     # Бот и диспетчер
     bot = Bot(
         token=TELEGRAM_BOT_TOKEN,
@@ -78,26 +96,43 @@ async def main():
     dp.include_router(favorites_router)
     dp.include_router(templates_router)
     dp.include_router(export_router)
-    # 3. Свободный чат
+
+    # 3. Новые фичи (FSM-роутеры — перед свободным чатом!)
+    dp.include_router(web_search_router)
+    dp.include_router(multi_agent_router)
+    dp.include_router(scheduled_router)
+    dp.include_router(memory_router)
+    dp.include_router(charts_router)
+    dp.include_router(knowledge_router)
+    dp.include_router(market_router)
+
+    # 4. Свободный чат
     dp.include_router(free_chat_router)
-    # 4. Настройки
+    # 5. Настройки
     dp.include_router(settings_router)
-    # 5. Голосовые и файлы
+    # 6. Голосовые и файлы
     dp.include_router(voice_router)
     dp.include_router(file_upload_router)
-    # 6. Админка
+    # 7. Админка
     dp.include_router(admin_panel_router)
     dp.include_router(admin_wl_router)
     dp.include_router(admin_ag_router)
     dp.include_router(admin_stats_router)
-    # 7. Catch-all текстовый роутер — ПОСЛЕДНИЙ
+    # 8. Catch-all текстовый роутер — ПОСЛЕДНИЙ
     dp.include_router(chat_router)
+
+    # Инициализация планировщика
+    from services.scheduler import init_scheduler
+    await init_scheduler(bot)
+    logger.info("Scheduler initialized")
 
     # Запуск
     logger.info("Bot starting...")
     try:
         await dp.start_polling(bot, allowed_updates=["message", "callback_query"])
     finally:
+        from services.scheduler import stop_scheduler
+        stop_scheduler()
         await bot.session.close()
 
 

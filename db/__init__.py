@@ -7,3 +7,6 @@ from db.stats import *
 from db.favorites import *
 from db.templates import *
 from db.user_settings import *
+from db.memory import *
+from db.scheduled import *
+from db.knowledge import *
