@@ -17,6 +17,7 @@ from db.stats import log_usage
 from db.favorites import is_favorite
 from services.llm_stream import chat_completion_stream
 from services.text_utils import split_text
+from services.formatter import format_response, to_html
 from keyboards import get_menu_kb, agent_selected_kb, free_chat_kb
 
 logger = logging.getLogger(__name__)
@@ -25,7 +26,14 @@ router = Router()
 FREE_CHAT_PROMPT = (
     "Ты — универсальный AI-ассистент Claude. "
     "Отвечай подробно, точно и полезно. "
-    "Используй русский язык, если пользователь пишет на русском."
+    "Используй русский язык, если пользователь пишет на русском.\n\n"
+    "📐 ФОРМАТИРОВАНИЕ:\n"
+    "• Структурируй ответ: краткое резюме → детали → вывод\n"
+    "• Используй *жирный* для ключевых терминов\n"
+    "• Используй `моноширинный` для кода, цифр, формул\n"
+    "• Разделяй блоки эмодзи-заголовками\n"
+    "• НЕ используй # заголовки и markdown-таблицы\n"
+    "• Оптимальная длина: 800-2000 символов"
 )
 
 # Минимальный интервал между edit_message (Telegram rate limit)
@@ -130,11 +138,18 @@ async def _process_llm_stream(message: Message, uid: int, agent_id, system_promp
         await message.answer(final_content, reply_markup=reply_kb)
         return
 
-    # Отправляем финальный ответ (может быть длинным — разбиваем)
-    parts = split_text(final_content)
+    # Форматируем и отправляем финальный ответ
+    formatted = format_response(final_content)
+    parts = split_text(formatted)
+
     for i, part in enumerate(parts):
         kb = reply_kb if i == len(parts) - 1 else None
+        # Markdown → HTML → plain text fallback
         try:
             await message.answer(part, parse_mode="Markdown", reply_markup=kb)
         except Exception:
-            await message.answer(part, reply_markup=kb)
+            try:
+                html_part = to_html(part)
+                await message.answer(html_part, parse_mode="HTML", reply_markup=kb)
+            except Exception:
+                await message.answer(part, reply_markup=kb)
