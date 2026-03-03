@@ -12,13 +12,13 @@ from aiogram.filters import Command
 from db.agents import get_agents, get_agent
 from db.state import set_user_state
 from db.history import clear_history
+from db.favorites import is_favorite
 from keyboards import agents_list_kb, agent_selected_kb
 
 router = Router()
 logger = logging.getLogger(__name__)
 
 # Маппинг agent_id -> файл картинки
-# Путь определяется относительно корня проекта
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 IMAGES_DIR = os.path.join(BASE_DIR, "images")
 
@@ -46,6 +46,12 @@ def _get_agent_photo(agent_id: int):
     return None
 
 
+def _agent_kb(agent_id: int, user_id: int):
+    """Клавиатура агента с учётом избранного."""
+    fav = is_favorite(user_id, agent_id)
+    return agent_selected_kb(agent_id, is_fav=fav)
+
+
 @router.message(Command("agents"))
 async def cmd_agents(message: Message, **kwargs):
     agents = get_agents(active_only=True)
@@ -62,7 +68,6 @@ async def cb_agents_list(callback: CallbackQuery, **kwargs):
         await callback.message.edit_text("😔 Пока нет доступных агентов.")
         await callback.answer()
         return
-    # Удаляем старое сообщение (может быть фото) и отправляем новое
     try:
         await callback.message.delete()
     except Exception:
@@ -83,7 +88,8 @@ async def cb_agent_select(callback: CallbackQuery, **kwargs):
         await callback.answer("❌ Агент не найден", show_alert=True)
         return
 
-    set_user_state(callback.from_user.id, "agent", agent_id)
+    uid = callback.from_user.id
+    set_user_state(uid, "agent", agent_id)
 
     caption = (
         f"{agent['emoji']} **Агент: {agent['name']}**\n\n"
@@ -92,8 +98,8 @@ async def cb_agent_select(callback: CallbackQuery, **kwargs):
     )
 
     photo = _get_agent_photo(agent_id)
+    kb = _agent_kb(agent_id, uid)
 
-    # Удаляем старое сообщение (текст или фото)
     try:
         await callback.message.delete()
     except Exception:
@@ -101,32 +107,24 @@ async def cb_agent_select(callback: CallbackQuery, **kwargs):
 
     if photo:
         await callback.message.answer_photo(
-            photo=photo,
-            caption=caption,
-            parse_mode="Markdown",
-            reply_markup=agent_selected_kb(agent_id),
+            photo=photo, caption=caption, parse_mode="Markdown", reply_markup=kb,
         )
     else:
-        await callback.message.answer(
-            caption,
-            parse_mode="Markdown",
-            reply_markup=agent_selected_kb(agent_id),
-        )
+        await callback.message.answer(caption, parse_mode="Markdown", reply_markup=kb)
     await callback.answer()
 
 
 @router.callback_query(F.data.startswith("agent:clear:"))
 async def cb_agent_clear(callback: CallbackQuery, **kwargs):
     agent_id = int(callback.data.split(":")[2])
-    clear_history(callback.from_user.id, agent_id)
+    uid = callback.from_user.id
+    clear_history(uid, agent_id)
     agent = get_agent(agent_id)
     name = agent["name"] if agent else "Агент"
 
-    caption = (
-        f"🔄 Диалог с **{name}** сброшен. Можете начать заново."
-    )
-
+    caption = f"🔄 Диалог с **{name}** сброшен. Можете начать заново."
     photo = _get_agent_photo(agent_id) if agent else None
+    kb = _agent_kb(agent_id, uid)
 
     try:
         await callback.message.delete()
@@ -135,17 +133,10 @@ async def cb_agent_clear(callback: CallbackQuery, **kwargs):
 
     if photo:
         await callback.message.answer_photo(
-            photo=photo,
-            caption=caption,
-            parse_mode="Markdown",
-            reply_markup=agent_selected_kb(agent_id),
+            photo=photo, caption=caption, parse_mode="Markdown", reply_markup=kb,
         )
     else:
-        await callback.message.answer(
-            caption,
-            parse_mode="Markdown",
-            reply_markup=agent_selected_kb(agent_id),
-        )
+        await callback.message.answer(caption, parse_mode="Markdown", reply_markup=kb)
     await callback.answer()
 
 
@@ -157,6 +148,7 @@ async def cb_agent_info(callback: CallbackQuery, **kwargs):
         await callback.answer("❌ Агент не найден", show_alert=True)
         return
 
+    uid = callback.from_user.id
     status = "✅ Активен" if agent["is_active"] else "❌ Неактивен"
     caption = (
         f"{agent['emoji']} **{agent['name']}**\n\n"
@@ -166,6 +158,7 @@ async def cb_agent_info(callback: CallbackQuery, **kwargs):
     )
 
     photo = _get_agent_photo(agent_id)
+    kb = _agent_kb(agent_id, uid)
 
     try:
         await callback.message.delete()
@@ -174,15 +167,8 @@ async def cb_agent_info(callback: CallbackQuery, **kwargs):
 
     if photo:
         await callback.message.answer_photo(
-            photo=photo,
-            caption=caption,
-            parse_mode="Markdown",
-            reply_markup=agent_selected_kb(agent_id),
+            photo=photo, caption=caption, parse_mode="Markdown", reply_markup=kb,
         )
     else:
-        await callback.message.answer(
-            caption,
-            parse_mode="Markdown",
-            reply_markup=agent_selected_kb(agent_id),
-        )
+        await callback.message.answer(caption, parse_mode="Markdown", reply_markup=kb)
     await callback.answer()

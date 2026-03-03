@@ -4,3 +4,6 @@ from db.agents import *
 from db.history import *
 from db.state import *
 from db.stats import *
+from db.favorites import *
+from db.templates import *
+from db.user_settings import *

@@ -9,3 +9,5 @@ from keyboards.admin_kb import (
     admin_agent_edit_kb,
 )
 from keyboards.common_kb import confirm_kb, cancel_kb
+from keyboards.favorites_kb import favorites_list_kb, favorite_toggle_btn
+from keyboards.templates_kb import templates_list_kb

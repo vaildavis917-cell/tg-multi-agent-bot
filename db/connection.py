@@ -68,10 +68,41 @@ def init_db() -> None:
                 current_agent_id    INTEGER DEFAULT NULL,
                 updated_at          REAL DEFAULT 0
             );
+
+            CREATE TABLE IF NOT EXISTS favorites (
+                id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id     INTEGER NOT NULL,
+                agent_id    INTEGER NOT NULL,
+                added_at    REAL DEFAULT 0,
+                UNIQUE(user_id, agent_id)
+            );
+
+            CREATE TABLE IF NOT EXISTS templates (
+                id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                agent_id    INTEGER NOT NULL,
+                title       TEXT NOT NULL,
+                text        TEXT NOT NULL,
+                created_at  REAL DEFAULT 0
+            );
+
+            CREATE TABLE IF NOT EXISTS user_settings (
+                user_id     INTEGER PRIMARY KEY,
+                lang        TEXT DEFAULT 'ru',
+                updated_at  REAL DEFAULT 0
+            );
         """)
 
-        # Миграция: добавляем колонку tag если её нет
+        # Миграции для существующих БД
+        _migrate(conn)
+
+
+def _migrate(conn):
+    """Миграции для обратной совместимости."""
+    migrations = [
+        ("whitelist", "tag", "ALTER TABLE whitelist ADD COLUMN tag TEXT DEFAULT ''"),
+    ]
+    for table, column, sql in migrations:
         try:
-            conn.execute("ALTER TABLE whitelist ADD COLUMN tag TEXT DEFAULT ''")
+            conn.execute(sql)
         except sqlite3.OperationalError:
             pass  # колонка уже существует

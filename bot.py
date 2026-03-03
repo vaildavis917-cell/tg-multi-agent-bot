@@ -19,6 +19,12 @@ from handlers.start import router as start_router
 from handlers.menu_nav import router as menu_nav_router
 from handlers.agents import router as agents_router
 from handlers.free_chat import router as free_chat_router
+from handlers.favorites import router as favorites_router
+from handlers.templates import router as templates_router
+from handlers.export import router as export_router
+from handlers.settings import router as settings_router
+from handlers.voice import router as voice_router
+from handlers.file_upload import router as file_upload_router
 from handlers.admin_panel import router as admin_panel_router
 from handlers.admin_whitelist import router as admin_wl_router
 from handlers.admin_agents import router as admin_ag_router
@@ -63,16 +69,29 @@ async def main():
     dp.message.middleware(AccessMiddleware())
     dp.callback_query.middleware(AccessMiddleware())
 
-    # Регистрация роутеров (порядок важен — chat_router последний!)
+    # Регистрация роутеров (порядок важен!)
+    # 1. Команды и навигация
     dp.include_router(start_router)
     dp.include_router(menu_nav_router)
+    # 2. Агенты и их фичи
     dp.include_router(agents_router)
+    dp.include_router(favorites_router)
+    dp.include_router(templates_router)
+    dp.include_router(export_router)
+    # 3. Свободный чат
     dp.include_router(free_chat_router)
+    # 4. Настройки
+    dp.include_router(settings_router)
+    # 5. Голосовые и файлы
+    dp.include_router(voice_router)
+    dp.include_router(file_upload_router)
+    # 6. Админка
     dp.include_router(admin_panel_router)
     dp.include_router(admin_wl_router)
     dp.include_router(admin_ag_router)
     dp.include_router(admin_stats_router)
-    dp.include_router(chat_router)  # catch-all — последний
+    # 7. Catch-all текстовый роутер — ПОСЛЕДНИЙ
+    dp.include_router(chat_router)
 
     # Запуск
     logger.info("Bot starting...")
